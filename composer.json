@@ -1,0 +1,9 @@
+{
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "laravel/sanctum": "^4.0",
+        "james-heinrich/getid3": "^1.9"
+    },
+    "note": "This is a partial composer.json showing the extra packages this backend needs beyond a fresh Laravel install. Merge these into your project's composer.json, or run: composer require james-heinrich/getid3 laravel/sanctum"
+}
