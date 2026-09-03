@@ -15,21 +15,18 @@ class BookController extends Controller
     public function index()
     {
         $books = Book::with(['category', 'author'])->latest()->paginate(10);
-        return view('admin.books.index', compact('books'));
-    }
+        $categories = Category::orderBy('name')->get();
+        $authors = Author::orderBy('name')->get();
 
-    // Data needed for the "Add Book" / "Edit Book" modals (category + author dropdowns).
-    private function formOptions(): array
-    {
-        return [
-            'categories' => Category::orderBy('name')->get(),
-            'authors'    => Author::orderBy('name')->get(),
-        ];
+        return view('admin.books.index', compact('books', 'categories', 'authors'));
     }
 
     public function create()
     {
-        return response()->json($this->formOptions());
+        return response()->json([
+            'categories' => Category::orderBy('name')->get(),
+            'authors'    => Author::orderBy('name')->get(),
+        ]);
     }
 
     // POST /admin/books  (Add Book modal -> Save)
@@ -85,7 +82,6 @@ class BookController extends Controller
             'category_id' => 'required|exists:categories,id',
             'author_id'   => 'required|exists:authors,id',
             'description' => 'nullable|string',
-            // Note: book "type" (Chapter / Full Book) cannot be changed after creation.
         ]);
 
         if ($request->hasFile('image')) {
@@ -179,7 +175,6 @@ class BookController extends Controller
             $chapter->resource_url = $data['resource_url'] ?? $chapter->resource_url;
             $chapter->duration = $this->manualDuration($data);
         }
-        // if upload_type = file and no new file chosen, existing resource_path/duration stay as-is.
 
         $chapter->save();
 
@@ -195,7 +190,6 @@ class BookController extends Controller
 
     // --- helpers ---
 
-    // Reads MM:SS from the two duration inputs the admin filled manually.
     private function manualDuration(array $data): ?string
     {
         if (!isset($data['duration_min']) && !isset($data['duration_sec'])) return null;
@@ -204,8 +198,6 @@ class BookController extends Controller
         return "{$min}:{$sec}";
     }
 
-    // Auto-detects duration from an uploaded audio file using getID3.
-    // Composer: `composer require james-heinrich/getid3`
     private function detectDuration(string $absolutePath): ?string
     {
         if (!class_exists(getID3::class)) return null;
