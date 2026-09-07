@@ -2,10 +2,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
 
 class Customer extends Model
 {
-    protected $fillable = ['name', 'email', 'device_type', 'login_type', 'fcm_token'];
+    use HasApiTokens;
+
+    protected $fillable = ['name', 'email', 'password', 'device_type', 'login_type', 'fcm_token'];
+    protected $hidden = ['password'];
+
+    protected $casts = [
+        'password' => 'hashed',
+    ];
 
     public function likes()
     {
@@ -15,5 +23,10 @@ class Customer extends Model
     public function reviews()
     {
         return $this->hasMany(BookReview::class);
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(CustomerSubscription::class);
     }
 }
