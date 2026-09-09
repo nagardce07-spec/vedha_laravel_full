@@ -16,7 +16,7 @@
     <table id="custTable">
         <thead>
             <tr>
-                <th>Customer Info</th><th>Device Type</th><th>Login Type</th>
+                <th>Customer Info</th><th>Phone</th><th>Device Type</th><th>Login Type</th>
                 <th>Books Liked</th><th>Reviews</th><th>Joined</th>
             </tr>
         </thead>
@@ -34,6 +34,7 @@
                             <div style="color:#9CA3AF; font-size:12.5px;">{{ $customer->email }}</div>
                         </div>
                     </td>
+                    <td>{{ $customer->phone ?? '—' }}</td>
                     <td><span class="badge" style="background:#EDE9FE;color:#7C3AED;">{{ $customer->device_type }}</span></td>
                     <td><span class="badge" style="background:#ECFDF5;color:{{ $loginColor }};">{{ $customer->login_type }}</span></td>
                     <td>{{ $customer->likes_count }}</td>

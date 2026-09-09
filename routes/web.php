@@ -112,6 +112,17 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
     Route::put('/privacy-policy', [PageController::class, 'updatePrivacy'])->name('privacy.update');
     Route::get('/terms-of-uses', [PageController::class, 'editTerms'])->name('terms.edit');
     Route::put('/terms-of-uses', [PageController::class, 'updateTerms'])->name('terms.update');
+
+    // Subscription Plans
+    Route::get('/subscription-plans', [\App\Http\Controllers\Admin\SubscriptionPlanController::class, 'index'])->name('subscriptionplans.index');
+    Route::post('/subscription-plans', [\App\Http\Controllers\Admin\SubscriptionPlanController::class, 'store'])->name('subscriptionplans.store');
+    Route::put('/subscription-plans/{plan}', [\App\Http\Controllers\Admin\SubscriptionPlanController::class, 'update'])->name('subscriptionplans.update');
+    Route::patch('/subscription-plans/{plan}/toggle', [\App\Http\Controllers\Admin\SubscriptionPlanController::class, 'toggle'])->name('subscriptionplans.toggle');
+    Route::delete('/subscription-plans/{plan}', [\App\Http\Controllers\Admin\SubscriptionPlanController::class, 'destroy'])->name('subscriptionplans.destroy');
+
+    // Payment Settings (Razorpay)
+    Route::get('/payment-settings', [\App\Http\Controllers\Admin\PaymentSettingController::class, 'edit'])->name('paymentsettings.edit');
+    Route::put('/payment-settings', [\App\Http\Controllers\Admin\PaymentSettingController::class, 'update'])->name('paymentsettings.update');
 });
 
 Route::get('/', fn () => redirect()->route('admin.dashboard'));

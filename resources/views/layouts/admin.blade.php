@@ -91,6 +91,8 @@
         <a class="nav-link {{ request()->routeIs('admin.appsettings.*') ? 'active' : '' }}" href="{{ route('admin.appsettings.edit') }}">🎛️ App Settings</a>
         <a class="nav-link {{ request()->routeIs('admin.quickshare.*') ? 'active' : '' }}" href="{{ route('admin.quickshare.edit') }}">🔗 Quick Share</a>
         <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.edit') }}">⚙️ Settings</a>
+        <a class="nav-link {{ request()->routeIs('admin.subscriptionplans.*') ? 'active' : '' }}" href="{{ route('admin.subscriptionplans.index') }}">💳 Subscription Plans</a>
+        <a class="nav-link {{ request()->routeIs('admin.paymentsettings.*') ? 'active' : '' }}" href="{{ route('admin.paymentsettings.edit') }}">🏦 Payment Settings</a>
 
         <div class="nav-divider"></div>
         <a class="nav-link {{ request()->routeIs('admin.privacy.*') ? 'active' : '' }}" href="{{ route('admin.privacy.edit') }}">🛡️ Privacy Policy</a>
