@@ -55,7 +55,7 @@
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
         <span style="color:#6B7280; font-size:13px;">Showing {{ $books->firstItem() }} to {{ $books->lastItem() }} of {{ $books->total() }} entries</span>
-        <div class="pagination">{{ $books->links() }}</div>
+        <div class="pagination">{{ $books->links('vendor.pagination.custom') }}</div>
     </div>
 </div>
 
