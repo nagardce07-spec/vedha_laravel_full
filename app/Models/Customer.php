@@ -8,7 +8,7 @@ class Customer extends Model
 {
     use HasApiTokens;
 
-    protected $fillable = ['name', 'email', 'password', 'device_type', 'login_type', 'fcm_token'];
+    protected $fillable = ['name', 'email', 'password', 'phone', 'device_type', 'login_type', 'fcm_token'];
     protected $hidden = ['password'];
 
     protected $casts = [

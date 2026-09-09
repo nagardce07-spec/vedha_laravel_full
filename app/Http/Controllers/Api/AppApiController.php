@@ -62,6 +62,13 @@ class AppApiController extends Controller
 
         if ($request->filled('category_id')) $query->where('category_id', $request->category_id);
         if ($request->boolean('featured'))    $query->where('is_featured', true);
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhereHas('author', fn ($a) => $a->where('name', 'like', "%{$term}%"));
+            });
+        }
 
         return $query->latest()->paginate(20);
     }
