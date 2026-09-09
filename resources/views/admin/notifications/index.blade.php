@@ -41,7 +41,7 @@
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
         <span style="color:#6B7280; font-size:13px;">Showing {{ $notifications->firstItem() }} to {{ $notifications->lastItem() }} of {{ $notifications->total() }} entries</span>
-        <div class="pagination">{{ $notifications->links() }}</div>
+        <div class="pagination">{{ $notifications->links('vendor.pagination.custom') }}</div>
     </div>
 </div>
 

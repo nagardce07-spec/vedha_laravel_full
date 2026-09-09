@@ -36,7 +36,7 @@
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
         <span style="color:#6B7280; font-size:13px;">Showing {{ $reviews->firstItem() }} to {{ $reviews->lastItem() }} of {{ $reviews->total() }} entries</span>
-        <div class="pagination">{{ $reviews->links() }}</div>
+        <div class="pagination">{{ $reviews->links('vendor.pagination.custom') }}</div>
     </div>
 </div>
 

@@ -41,7 +41,7 @@
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
         <span style="color:#6B7280; font-size:13px;">Showing {{ $suggestions->firstItem() }} to {{ $suggestions->lastItem() }} of {{ $suggestions->total() }} entries</span>
-        <div class="pagination">{{ $suggestions->links() }}</div>
+        <div class="pagination">{{ $suggestions->links('vendor.pagination.custom') }}</div>
     </div>
 </div>
 @endsection

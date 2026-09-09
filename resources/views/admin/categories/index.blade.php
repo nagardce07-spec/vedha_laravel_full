@@ -34,7 +34,7 @@
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
         <span style="color:#6B7280; font-size:13px;">Showing {{ $categories->firstItem() }} to {{ $categories->lastItem() }} of {{ $categories->total() }} entries</span>
-        <div class="pagination">{{ $categories->links() }}</div>
+        <div class="pagination">{{ $categories->links('vendor.pagination.custom') }}</div>
     </div>
 </div>
 
