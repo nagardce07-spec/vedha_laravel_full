@@ -15,7 +15,10 @@ class BookController extends Controller
     public function index()
     {
         $books = Book::with(['category', 'author'])->latest()->paginate(10);
-        return view('admin.books.index', compact('books'));
+        $categories = Category::orderBy('name')->get();
+        $authors = Author::orderBy('name')->get();
+
+        return view('admin.books.index', compact('books', 'categories', 'authors'));
     }
 
     // Data needed for the "Add Book" / "Edit Book" modals (category + author dropdowns).
