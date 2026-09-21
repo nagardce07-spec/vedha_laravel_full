@@ -84,4 +84,6 @@ class GeneralSettingController extends Controller
 
         return back()->with('success', 'Email settings saved.');
     }
+
+    // PUT /admin/settings/app-update  (Latest Version / APK link / Force update -> Save)
 }

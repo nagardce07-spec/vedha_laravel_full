@@ -10,7 +10,11 @@ class GeneralSetting extends Model
         'title', 'favicon_path', 'logo_light_path', 'login_image_path', 'storage_provider',
         'mail_driver', 'mail_host', 'mail_port', 'mail_encryption',
         'mail_username', 'mail_password', 'mail_from_address', 'mail_from_name',
+        'latest_version', 'apk_url', 'force_update', 'update_notes',
     ];
+
+    protected $casts = ['force_update' => 'boolean'];
+
 
     protected $appends = ['favicon_url', 'logo_light_url', 'login_image_url'];
 

@@ -14,16 +14,18 @@ class CustomerAuthController extends Controller
     {
         $data = $request->validate([
             'name'     => 'required|string|max:255',
+            'username' => 'required|string|max:100|unique:customers,username|regex:/^[a-zA-Z0-9_.]+$/',
             'email'    => 'required|email|unique:customers,email',
             'password' => 'required|string|min:6',
-            'phone'    => 'nullable|string|max:20',
+            'phone'    => 'required|string|max:20',
         ]);
 
         $customer = Customer::create([
             'name'       => $data['name'],
+            'username'   => $data['username'],
             'email'      => $data['email'],
             'password'   => Hash::make($data['password']),
-            'phone'      => $data['phone'] ?? null,
+            'phone'      => $data['phone'],
             'login_type' => 'Email',
         ]);
 
@@ -105,8 +107,9 @@ class CustomerAuthController extends Controller
     public function updateMe(Request $request)
     {
         $data = $request->validate([
-            'name'  => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'name'     => 'required|string|max:255',
+            'username' => 'required|string|max:100|regex:/^[a-zA-Z0-9_.]+$/|unique:customers,username,' . $request->user()->id,
+            'phone'    => 'nullable|string|max:20',
         ]);
 
         $request->user()->update($data);

@@ -27,6 +27,24 @@ class AppApiController extends Controller
             'theme_color'            => $theme->theme_color,
             'theme_light_color'      => $theme->theme_light_color,
             'theme_background_color' => $theme->theme_background_color,
+            'latest_version'         => $general->latest_version,
+            'apk_url'                => $general->apk_url,
+            'force_update'           => $general->force_update,
+            'update_notes'           => $general->update_notes,
+        ]);
+    }
+
+    // GET /api/app-version — used by the app to check if an update is available
+    public function appVersion()
+    {
+        $update = \App\Models\AppUpdateSetting::current();
+
+        return response()->json([
+            'latest_version'      => $update->latest_version,
+            'latest_version_code' => $update->latest_version_code,
+            'apk_url'             => $update->apk_url,
+            'release_notes'       => $update->release_notes,
+            'force_update'        => $update->force_update,
         ]);
     }
 
@@ -74,11 +92,18 @@ class AppApiController extends Controller
     }
 
     // GET /api/books/{book}
-    public function bookDetail(Book $book)
+    public function bookDetail(Request $request, Book $book)
     {
         $book->increment('views');
         $book->load(['category', 'author', 'chapters', 'reviews']);
-        return $book;
+
+        $data = $book->toArray();
+        $customerId = $request->user('sanctum')?->id;
+        $data['is_liked'] = $customerId
+            ? \App\Models\BookLike::where('book_id', $book->id)->where('customer_id', $customerId)->exists()
+            : false;
+
+        return response()->json($data);
     }
 
     // GET /api/trending-books
@@ -140,7 +165,7 @@ class AppApiController extends Controller
             'suggested_by'=> 'nullable|string|max:255',
         ]);
 
-        $data['customer_id'] = $request->user()?->id;
+        $data['customer_id'] = $request->user('sanctum')?->id;
         BookSuggestion::create($data);
 
         return response()->json(['message' => 'Thanks! Your suggestion was received.'], 201);
