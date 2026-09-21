@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\Api\AppApiController;
 use App\Http\Controllers\Api\CustomerAuthController;
+use App\Http\Controllers\Api\PlaylistController;
 use App\Http\Controllers\Api\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,7 @@ Route::post('/forgot-password', [CustomerAuthController::class, 'forgotPassword'
 Route::post('/reset-password', [CustomerAuthController::class, 'resetPassword']);
 
 Route::get('/app-info', [AppApiController::class, 'appInfo']);
+Route::get('/app-version', [AppApiController::class, 'appVersion']);
 Route::get('/onboarding-screens', [AppApiController::class, 'onboarding']);
 Route::get('/categories', [AppApiController::class, 'categories']);
 Route::get('/authors', [AppApiController::class, 'authors']);
@@ -30,6 +32,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/books/{book}/reviews', [AppApiController::class, 'storeReview']);
     Route::post('/books/{book}/like', [AppApiController::class, 'toggleLike']);
     Route::get('/liked-books', [AppApiController::class, 'likedBooks']);
+    Route::get('/playlists', [PlaylistController::class, 'index']);
+    Route::post('/playlists', [PlaylistController::class, 'store']);
+    Route::get('/playlists/{playlist}', [PlaylistController::class, 'show']);
+    Route::delete('/playlists/{playlist}', [PlaylistController::class, 'destroy']);
+    Route::post('/playlists/{playlist}/toggle-book', [PlaylistController::class, 'toggleBook']);
     Route::get('/subscriptions/status', [SubscriptionController::class, 'status']);
     Route::post('/subscriptions/create-order', [SubscriptionController::class, 'createOrder']);
     Route::post('/subscriptions/verify', [SubscriptionController::class, 'verify']);

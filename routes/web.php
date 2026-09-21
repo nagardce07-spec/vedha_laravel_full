@@ -90,6 +90,10 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
     Route::get('/app-settings', [AppSettingController::class, 'edit'])->name('appsettings.edit');
     Route::put('/app-settings', [AppSettingController::class, 'update'])->name('appsettings.update');
 
+    // App Update (version/APK tracking)
+    Route::get('/app-update', [\App\Http\Controllers\Admin\AppUpdateSettingController::class, 'edit'])->name('appupdate.edit');
+    Route::put('/app-update', [\App\Http\Controllers\Admin\AppUpdateSettingController::class, 'update'])->name('appupdate.update');
+
     // Quick Share
     Route::get('/quick-share', [QuickShareSettingController::class, 'edit'])->name('quickshare.edit');
     Route::put('/quick-share/scheme', [QuickShareSettingController::class, 'updateScheme'])->name('quickshare.scheme');

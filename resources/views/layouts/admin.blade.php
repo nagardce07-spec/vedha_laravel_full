@@ -89,6 +89,7 @@
         <a class="nav-link {{ request()->routeIs('admin.suggestions.*') ? 'active' : '' }}" href="{{ route('admin.suggestions.index') }}">💡 Book Suggestions</a>
         <a class="nav-link {{ request()->routeIs('admin.admob.*') ? 'active' : '' }}" href="{{ route('admin.admob.edit') }}">📺 Admob</a>
         <a class="nav-link {{ request()->routeIs('admin.appsettings.*') ? 'active' : '' }}" href="{{ route('admin.appsettings.edit') }}">🎛️ App Settings</a>
+        <a class="nav-link {{ request()->routeIs('admin.appupdate.*') ? 'active' : '' }}" href="{{ route('admin.appupdate.edit') }}">⬆️ App Update</a>
         <a class="nav-link {{ request()->routeIs('admin.quickshare.*') ? 'active' : '' }}" href="{{ route('admin.quickshare.edit') }}">🔗 Quick Share</a>
         <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.edit') }}">⚙️ Settings</a>
         <a class="nav-link {{ request()->routeIs('admin.subscriptionplans.*') ? 'active' : '' }}" href="{{ route('admin.subscriptionplans.index') }}">💳 Subscription Plans</a>
