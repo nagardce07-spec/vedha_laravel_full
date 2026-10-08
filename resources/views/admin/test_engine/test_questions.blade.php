@@ -1,0 +1,5 @@
+@extends('layouts.admin')
+@section('title','Test Questions')
+@section('content')
+<div class="card"><div class="card-header"><div><div style="color:#6B7280;font-size:13px;">{{ $test->batch->title }}</div><div class="card-title">{{ $test->title }} — Questions</div></div><a class="btn btn-secondary" href="{{ route('admin.testengine.tests') }}">← Back</a></div><form method="POST" action="{{ route('admin.testengine.tests.questions.sync',$test) }}">@csrf<table><thead><tr><th></th><th>#</th><th>Question</th><th>Topic</th><th>Difficulty</th></tr></thead><tbody>@foreach($questions as $q)<tr><td><input type="checkbox" name="question_ids[]" value="{{ $q->id }}" @checked(in_array($q->id,$selected))></td><td>{{ $q->id }}</td><td>{{ \Illuminate\Support\Str::limit($q->question_text,120) }}</td><td>{{ $q->topic->name??'—' }}</td><td>{{ ucfirst($q->difficulty) }}</td></tr>@endforeach</tbody></table><button class="btn btn-primary" style="margin-top:16px">Save Selected Questions ({{ count($selected) }})</button></form><div class="pagination">{{ $questions->links('vendor.pagination.custom') }}</div></div>
+@endsection

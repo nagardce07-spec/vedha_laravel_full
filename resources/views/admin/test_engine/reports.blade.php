@@ -1,0 +1,5 @@
+@extends('layouts.admin')
+@section('title','Test Reports')
+@section('content')
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:18px"><div class="card"><div style="color:#6B7280">Submitted Attempts</div><div style="font-size:30px;font-weight:700">{{ $submitted }}</div></div><div class="card"><div style="color:#6B7280">Average Score</div><div style="font-size:30px;font-weight:700">{{ round($avgScore??0,2) }}</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:18px"><div class="card"><div class="card-title" style="margin-bottom:12px">Top Tests by Attempts</div><table><thead><tr><th>Test</th><th>Attempts</th></tr></thead><tbody>@foreach($topTests as $t)<tr><td>{{ $t->title }}</td><td>{{ $t->attempts_count }}</td></tr>@endforeach</tbody></table></div><div class="card"><div class="card-title" style="margin-bottom:12px">Most Wrong Questions</div><table><thead><tr><th>Question</th><th>Wrong</th></tr></thead><tbody>@foreach($questionStats as $q)<tr><td>{{ \Illuminate\Support\Str::limit($q->question_text,80) }}</td><td>{{ $q->wrong_answer_count }}</td></tr>@endforeach</tbody></table></div></div>
+@endsection
