@@ -35,7 +35,10 @@ class Book extends Model
     public function getResourceFullUrlAttribute(): ?string
     {
         if ($this->upload_type === 'url') return $this->resource_url;
-        return $this->resource_path ? Storage::url($this->resource_path) : null;
+
+        return $this->resource_path
+            ? url('/api/audio/books/' . $this->id)
+            : null;
     }
 
     public function getLikesCountAttribute(): int

@@ -80,6 +80,14 @@
         <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">🗂️ Categories</a>
         <a class="nav-link {{ request()->routeIs('admin.authors.*') ? 'active' : '' }}" href="{{ route('admin.authors.index') }}">👤 Author</a>
         <a class="nav-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">👥 Customers</a>
+        <div class="nav-divider"></div>
+        <a class="nav-link {{ request()->routeIs('admin.testengine.index') ? 'active' : '' }}" href="{{ route('admin.testengine.index') }}">🧪 Test Batch Engine</a>
+        <a class="nav-link {{ request()->routeIs('admin.testengine.topics*') ? 'active' : '' }}" href="{{ route('admin.testengine.topics') }}">▸ Topics</a>
+        <a class="nav-link {{ request()->routeIs('admin.testengine.questions*') ? 'active' : '' }}" href="{{ route('admin.testengine.questions') }}">▸ Questions</a>
+        <a class="nav-link {{ request()->routeIs('admin.testengine.batches*') ? 'active' : '' }}" href="{{ route('admin.testengine.batches') }}">▸ Test Batches</a>
+        <a class="nav-link {{ request()->routeIs('admin.testengine.tests*') ? 'active' : '' }}" href="{{ route('admin.testengine.tests') }}">▸ Tests</a>
+        <a class="nav-link {{ request()->routeIs('admin.testengine.attempts*') ? 'active' : '' }}" href="{{ route('admin.testengine.attempts') }}">▸ Student Attempts</a>
+        <a class="nav-link {{ request()->routeIs('admin.testengine.reports*') ? 'active' : '' }}" href="{{ route('admin.testengine.reports') }}">▸ Reports & Analytics</a>
         <a class="nav-link {{ request()->routeIs('admin.books.*') ? 'active' : '' }}" href="{{ route('admin.books.index') }}">📖 Book</a>
         <a class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}" href="{{ route('admin.reviews.index') }}">⭐ Book Review</a>
         <a class="nav-link {{ request()->routeIs('admin.likes.*') ? 'active' : '' }}" href="{{ route('admin.likes.index') }}">👍 Book Likes</a>

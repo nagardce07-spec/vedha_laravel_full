@@ -8,6 +8,7 @@ use App\Models\BookLike;
 use App\Models\BookReview;
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\CustomerSubscription;
 use App\Models\TrendingBook;
 use Illuminate\Support\Carbon;
 
@@ -24,6 +25,13 @@ class DashboardController extends Controller
             'trending_books'  => TrendingBook::count(),
             'total_likes'     => BookLike::count(),
             'users'           => Customer::count(),
+            'total_customers' => Customer::count(),
+            'live_active_users' => Customer::where('last_active_at', '>=', now()->subSeconds(90))->count(),
+            'premium_users' => CustomerSubscription::where('status', 'active')
+                ->whereNotNull('expires_at')
+                ->where('expires_at', '>', now())
+                ->distinct('customer_id')
+                ->count('customer_id'),
             'average_rating'  => round(BookReview::avg('rating') ?? 0, 1),
         ];
 
@@ -48,5 +56,19 @@ class DashboardController extends Controller
         }
 
         return view('admin.dashboard', compact('stats', 'mostPopular', 'chartLabels', 'chartData', 'month'));
+    }
+
+    // GET /admin/dashboard/stats — live dashboard counters.
+    public function stats()
+    {
+        return response()->json([
+            'total_customers' => Customer::count(),
+            'live_active_users' => Customer::where('last_active_at', '>=', now()->subSeconds(90))->count(),
+            'premium_users' => CustomerSubscription::where('status', 'active')
+                ->whereNotNull('expires_at')
+                ->where('expires_at', '>', now())
+                ->distinct('customer_id')
+                ->count('customer_id'),
+        ]);
     }
 }

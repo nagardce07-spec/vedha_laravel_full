@@ -14,10 +14,13 @@ class CustomerAuthController extends Controller
     {
         $data = $request->validate([
             'name'     => 'required|string|max:255',
-            'username' => 'required|string|max:100|unique:customers,username|regex:/^[a-zA-Z0-9_.]+$/',
+            'username' => 'required|string|max:100|unique:customers,username',
             'email'    => 'required|email|unique:customers,email',
             'password' => 'required|string|min:6',
             'phone'    => 'required|string|max:20',
+            'dob'      => 'required|date',
+            'gender'   => 'required|string|in:Male,Female,Other',
+            'device_type' => 'nullable|string|max:50',
         ]);
 
         $customer = Customer::create([
@@ -26,6 +29,9 @@ class CustomerAuthController extends Controller
             'email'      => $data['email'],
             'password'   => Hash::make($data['password']),
             'phone'      => $data['phone'],
+            'dob'        => $data['dob'],
+            'gender'     => $data['gender'],
+            'device_type'=> $data['device_type'] ?? 'Unknown',
             'login_type' => 'Email',
         ]);
 
@@ -88,6 +94,13 @@ class CustomerAuthController extends Controller
             'customer' => $customer,
             'token'    => $token,
         ]);
+    }
+
+    // POST /api/activity/heartbeat — keeps the customer marked as currently active.
+    public function heartbeat(Request $request)
+    {
+        $request->user()->forceFill(['last_active_at' => now()])->save();
+        return response()->json(['active' => true]);
     }
 
     // POST /api/logout  (requires auth:sanctum)

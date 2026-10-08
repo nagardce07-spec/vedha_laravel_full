@@ -3,6 +3,31 @@
 @section('title', 'Dashboard')
 
 @section('content')
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:18px;">
+    <div class="card">
+        <div style="width:44px;height:44px;background:#EDE9FE;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">👥</div>
+        <div style="color:#6B7280;font-size:14px;">Total Customers</div>
+        <div id="totalCustomersCount" style="font-size:28px;font-weight:700;">{{ $stats['total_customers'] }}</div>
+    </div>
+    <div class="card">
+        <div style="width:44px;height:44px;background:#ECFDF5;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">🟢</div>
+        <div style="color:#6B7280;font-size:14px;">Live Active Users</div>
+        <div id="liveActiveUsersCount" style="font-size:28px;font-weight:700;">{{ $stats['live_active_users'] }}</div>
+    </div>
+    <div class="card">
+        <div style="width:44px;height:44px;background:#FEF3C7;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">💎</div>
+        <div style="color:#6B7280;font-size:14px;">Premium Users</div>
+        <div id="premiumUsersCount" style="font-size:28px;font-weight:700;">{{ $stats['premium_users'] }}</div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:18px; background:linear-gradient(135deg,#F5F3FF,#FFFFFF);">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:18px;">
+        <div><div style="color:#7C3AED;font-size:13px;font-weight:600;">TNPSC TEST MANAGEMENT</div><div style="font-size:24px;font-weight:700;margin-top:4px;">Test Batch Engine</div><div style="color:#6B7280;font-size:13px;margin-top:4px;">Manage questions, tests, batches, attempts and student analytics.</div></div>
+        <a class="btn btn-primary" href="{{ route('admin.testengine.index') }}">Open Test Batch Engine →</a>
+    </div>
+</div>
+
 <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:18px;">
     <div class="card">
         <div style="width:44px;height:44px;background:#F3E8FF;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">🗂️</div>
@@ -26,6 +51,13 @@
     </div>
 </div>
 
+<div class="card" style="margin-bottom:18px; background:linear-gradient(135deg,#F5F3FF,#FFFFFF);">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:18px;">
+        <div><div style="color:#7C3AED;font-size:13px;font-weight:600;">TNPSC TEST MANAGEMENT</div><div style="font-size:24px;font-weight:700;margin-top:4px;">Test Batch Engine</div><div style="color:#6B7280;font-size:13px;margin-top:4px;">Manage questions, tests, batches, attempts and student analytics.</div></div>
+        <a class="btn btn-primary" href="{{ route('admin.testengine.index') }}">Open Test Batch Engine →</a>
+    </div>
+</div>
+
 <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:18px;">
     <div class="card">
         <div style="width:44px;height:44px;background:#F3E8FF;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">📈</div>
@@ -36,11 +68,6 @@
         <div style="width:44px;height:44px;background:#F3E8FF;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">👍</div>
         <div style="color:#6B7280;font-size:14px;">Total Likes</div>
         <div style="font-size:28px;font-weight:700;">{{ $stats['total_likes'] }}</div>
-    </div>
-    <div class="card">
-        <div style="width:44px;height:44px;background:#F3E8FF;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">👥</div>
-        <div style="color:#6B7280;font-size:14px;">Users</div>
-        <div style="font-size:28px;font-weight:700;">{{ $stats['users'] }}</div>
     </div>
     <div class="card">
         <div style="width:44px;height:44px;background:#F3E8FF;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">⭐</div>
@@ -88,5 +115,23 @@
             scales: { y: { title: { display: true, text: 'Number of Customers' } }, x: { title: { display: true, text: 'Date' } } }
         }
     });
+
+    async function refreshDashboardCounters() {
+        try {
+            const response = await fetch(@json(route('admin.dashboard.stats')), {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
+            if (!response.ok) return;
+            const data = await response.json();
+            document.getElementById('totalCustomersCount').textContent = data.total_customers;
+            document.getElementById('liveActiveUsersCount').textContent = data.live_active_users;
+            document.getElementById('premiumUsersCount').textContent = data.premium_users;
+        } catch (_) {
+            // Keep the last displayed values if a refresh fails.
+        }
+    }
+
+    setInterval(refreshDashboardCounters, 10000);
 </script>
 @endsection

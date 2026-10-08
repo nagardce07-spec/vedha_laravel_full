@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\{
     AdmobSettingController, AppSettingController, AuthorController, BookController,
     BookLikeController, BookReviewController, BookSuggestionController, CategoryController,
-    CustomerController, DashboardController, GeneralSettingController, NotificationController,
+    CustomerController, DashboardController, GeneralSettingController, NotificationController, TestBatchEngineController,
     OnboardingScreenController, PageController, QuickShareSettingController, TrendingBookController
 };
 use App\Http\Controllers\Auth\AdminLoginController;
@@ -18,6 +18,7 @@ Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
 Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
 
     // Categories
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -33,6 +34,36 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
 
     // Customers (read-only)
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+
+    // Test Batch Engine
+    Route::get('/test-engine', [TestBatchEngineController::class, 'index'])->name('testengine.index');
+    Route::get('/test-engine/topics', [TestBatchEngineController::class, 'topics'])->name('testengine.topics');
+    Route::post('/test-engine/topics', [TestBatchEngineController::class, 'topicStore'])->name('testengine.topics.store');
+    Route::put('/test-engine/topics/{topic}', [TestBatchEngineController::class, 'topicUpdate'])->name('testengine.topics.update');
+    Route::delete('/test-engine/topics/{topic}', [TestBatchEngineController::class, 'topicDestroy'])->name('testengine.topics.destroy');
+    Route::get('/test-engine/questions', [TestBatchEngineController::class, 'questions'])->name('testengine.questions');
+    Route::post('/test-engine/questions', [TestBatchEngineController::class, 'questionStore'])->name('testengine.questions.store');
+    Route::put('/test-engine/questions/{question}', [TestBatchEngineController::class, 'questionUpdate'])->name('testengine.questions.update');
+    Route::delete('/test-engine/questions/{question}', [TestBatchEngineController::class, 'questionDestroy'])->name('testengine.questions.destroy');
+    Route::post('/test-engine/questions/import', [TestBatchEngineController::class, 'questionImport'])->name('testengine.questions.import');
+    Route::get('/test-engine/batches', [TestBatchEngineController::class, 'batches'])->name('testengine.batches');
+    Route::post('/test-engine/batches', [TestBatchEngineController::class, 'batchStore'])->name('testengine.batches.store');
+    Route::put('/test-engine/batches/{batch}', [TestBatchEngineController::class, 'batchUpdate'])->name('testengine.batches.update');
+    Route::delete('/test-engine/batches/{batch}', [TestBatchEngineController::class, 'batchDestroy'])->name('testengine.batches.destroy');
+    Route::get('/test-engine/tests', [TestBatchEngineController::class, 'tests'])->name('testengine.tests');
+    Route::post('/test-engine/tests', [TestBatchEngineController::class, 'testStore'])->name('testengine.tests.store');
+    Route::put('/test-engine/tests/{test}', [TestBatchEngineController::class, 'testUpdate'])->name('testengine.tests.update');
+    Route::delete('/test-engine/tests/{test}', [TestBatchEngineController::class, 'testDestroy'])->name('testengine.tests.destroy');
+    Route::get('/test-engine/tests/{test}/questions', [TestBatchEngineController::class, 'testQuestions'])->name('testengine.tests.questions');
+    Route::post('/test-engine/tests/{test}/questions', [TestBatchEngineController::class, 'syncTestQuestions'])->name('testengine.tests.questions.sync');
+    Route::get('/test-engine/attempts', [TestBatchEngineController::class, 'attempts'])->name('testengine.attempts');
+    Route::get('/test-engine/attempts/{attempt}', [TestBatchEngineController::class, 'attemptShow'])->name('testengine.attempts.show');
+    Route::get('/test-engine/batches/{batch}/access', [TestBatchEngineController::class, 'access'])->name('testengine.access');
+    Route::post('/test-engine/batches/{batch}/access', [TestBatchEngineController::class, 'accessStore'])->name('testengine.access.store');
+    Route::patch('/test-engine/access/{access}/revoke', [TestBatchEngineController::class, 'accessRevoke'])->name('testengine.access.revoke');
+    Route::get('/test-engine/reports', [TestBatchEngineController::class, 'reports'])->name('testengine.reports');
+    Route::get('/test-engine/reports/export-attempts', [TestBatchEngineController::class, 'exportAttempts'])->name('testengine.reports.export');
 
     // Books
     Route::get('/books', [BookController::class, 'index'])->name('books.index');
