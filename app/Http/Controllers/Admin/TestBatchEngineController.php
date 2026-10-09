@@ -104,10 +104,40 @@ class TestBatchEngineController extends Controller
     public function accessRevoke(TestBatchAccess $access){ $access->update(['status'=>'revoked']); return back()->with('success','Batch access revoked.'); }
 
     public function reports(){
-        $topTests=Test::with('batch')->withCount('attempts')->orderByDesc('attempts_count')->limit(10)->get();
-        $questionStats=TestQuestion::with(['topic'])->withCount(['answers as answer_count'=>fn($q)=>$q->whereNotNull('selected_answer')])->withCount(['answers as wrong_answer_count'=>fn($q)=>$q->where('is_correct',false)])->orderByDesc('wrong_answer_count')->limit(15)->get();
-        $avgScore=TestAttempt::where('status','submitted')->avg('score'); $submitted=TestAttempt::where('status','submitted')->count();
-        return view('admin.test_engine.reports',compact('topTests','questionStats','avgScore','submitted'));
+        $submittedQuery = TestAttempt::where('status', 'submitted');
+        $topTests = Test::with('batch')->withCount(['attempts' => fn($q) => $q->where('status', 'submitted')])
+            ->orderByDesc('attempts_count')->limit(10)->get();
+        $questionStats = TestQuestion::with(['topic'])
+            ->withCount(['answers as answer_count' => fn($q) => $q->whereNotNull('selected_answer')])
+            ->withCount(['answers as wrong_answer_count' => fn($q) => $q->where('is_correct', false)])
+            ->orderByDesc('wrong_answer_count')->limit(15)->get();
+        $avgScore = (clone $submittedQuery)->avg('score');
+        $submitted = (clone $submittedQuery)->count();
+
+        // Count actual submitted answers by category/topic so reports reflect student activity.
+        $categoryRows = DB::table('test_attempt_answers as taa')
+            ->join('test_attempts as ta', 'ta.id', '=', 'taa.attempt_id')
+            ->join('test_questions as tq', 'tq.id', '=', 'taa.question_id')
+            ->leftJoin('categories as c', 'c.id', '=', 'tq.category_id')
+            ->where('ta.status', 'submitted')->whereNotNull('taa.selected_answer')
+            ->selectRaw("COALESCE(c.name, 'Uncategorized') as label, COUNT(*) as total")
+            ->groupBy('c.id', 'c.name')->orderByDesc('total')->limit(10)->get();
+        $topicRows = DB::table('test_attempt_answers as taa')
+            ->join('test_attempts as ta', 'ta.id', '=', 'taa.attempt_id')
+            ->join('test_questions as tq', 'tq.id', '=', 'taa.question_id')
+            ->leftJoin('test_topics as tt', 'tt.id', '=', 'tq.topic_id')
+            ->where('ta.status', 'submitted')->whereNotNull('taa.selected_answer')
+            ->selectRaw("COALESCE(tt.name, 'Uncategorized') as label, COUNT(*) as total")
+            ->groupBy('tt.id', 'tt.name')->orderByDesc('total')->limit(10)->get();
+        $categoryTotal = (int) DB::table('test_questions')->distinct('category_id')->whereNotNull('category_id')->count('category_id');
+        $topicTotal = (int) DB::table('test_topics')->count();
+        $attemptsByDay = (clone $submittedQuery)->where('submitted_at', '>=', now()->subDays(29))
+            ->selectRaw('DATE(submitted_at) as day, COUNT(*) as total')->groupBy('day')->pluck('total', 'day');
+        $dailyLabels = []; $dailyData = [];
+        for ($d = now()->subDays(29)->startOfDay(); $d->lte(now()); $d->addDay()) {
+            $dailyLabels[] = $d->format('M d'); $dailyData[] = (int) ($attemptsByDay[$d->format('Y-m-d')] ?? 0);
+        }
+        return view('admin.test_engine.reports', compact('topTests','questionStats','avgScore','submitted','categoryRows','topicRows','categoryTotal','topicTotal','dailyLabels','dailyData'));
     }
 
     public function exportAttempts(){

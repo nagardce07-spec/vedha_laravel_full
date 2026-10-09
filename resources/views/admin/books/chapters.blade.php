@@ -161,6 +161,12 @@
         const [min, sec] = (chapter.duration || '0:0').split(':');
         document.getElementById('editChapterMin').value = min;
         document.getElementById('editChapterSec').value = sec;
+        const editFileInput = document.querySelector('#editChapterForm input[name="resource_file"]');
+        if (editFileInput) editFileInput.value = '';
+        if (chapter.upload_type === 'file') {
+            const fileRadio = document.querySelector('#editChapterForm input[value="file"]');
+            if (fileRadio) fileRadio.checked = true;
+        }
 
         document.getElementById('editChapterCurrentAudio').innerHTML =
             chapter.resource_full_url ? `<audio controls src="${chapter.resource_full_url}" style="height:32px;"></audio>` : 'None';

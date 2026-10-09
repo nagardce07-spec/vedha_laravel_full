@@ -1,11 +1,11 @@
 {{-- resources/views/admin/customers/index.blade.php --}}
 @extends('layouts.admin')
-@section('title', 'Customers')
+@section('title', 'Users')
 
 @section('content')
 <div class="card">
     <div class="card-header">
-        <div class="card-title"><span class="dot">•</span> Customers <span class="dot">•</span></div>
+        <div class="card-title"><span class="dot">•</span> Users <span class="dot">•</span></div>
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -16,7 +16,7 @@
     <table id="custTable">
         <thead>
             <tr>
-                <th>Customer ID</th><th>Customer Info</th><th>Username</th><th>Phone</th><th>Device Type</th><th>Premium</th><th>Tests</th><th>Joined</th>
+                <th>User ID</th><th>Customer Info</th><th>Username</th><th>Phone</th><th>Device Type</th><th>Premium</th><th>Tests</th><th>Joined</th>
             </tr>
         </thead>
         <tbody>

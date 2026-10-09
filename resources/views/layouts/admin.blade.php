@@ -79,7 +79,7 @@
         <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">📊 Dashboard</a>
         <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">🗂️ Categories</a>
         <a class="nav-link {{ request()->routeIs('admin.authors.*') ? 'active' : '' }}" href="{{ route('admin.authors.index') }}">👤 Author</a>
-        <a class="nav-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">👥 Customers</a>
+        <a class="nav-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">👥 Users</a>
         <div class="nav-divider"></div>
         <a class="nav-link {{ request()->routeIs('admin.testengine.index') ? 'active' : '' }}" href="{{ route('admin.testengine.index') }}">🧪 Test Batch Engine</a>
         <a class="nav-link {{ request()->routeIs('admin.testengine.topics*') ? 'active' : '' }}" href="{{ route('admin.testengine.topics') }}">▸ Topics</a>
