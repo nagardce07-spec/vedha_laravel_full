@@ -20,7 +20,7 @@ class BookChapter extends Model
         if ($this->upload_type === 'url') return $this->resource_url;
 
         return $this->resource_path
-            ? url('/api/audio/chapters/' . $this->id)
+            ? url('/api/audio/chapters/' . $this->id) . '?v=' . ($this->updated_at?->timestamp ?? $this->id)
             : null;
     }
 }

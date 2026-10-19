@@ -228,9 +228,9 @@ class BookController extends Controller
     // Composer: `composer require james-heinrich/getid3`
     private function detectDuration(string $absolutePath): ?string
     {
-        if (!class_exists(getID3::class)) return null;
+        if (!class_exists(\getID3::class)) return null;
 
-        $getID3 = new getID3();
+        $getID3 = new \getID3();
         $info = $getID3->analyze($absolutePath);
         $seconds = (int) round($info['playtime_seconds'] ?? 0);
         if ($seconds <= 0) return null;
