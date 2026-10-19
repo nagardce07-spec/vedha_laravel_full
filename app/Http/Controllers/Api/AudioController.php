@@ -31,12 +31,23 @@ class AudioController extends Controller
         abort_unless($disk->exists($path), 404);
 
         $absolutePath = $disk->path($path);
-        $mimeType = $disk->mimeType($path) ?: 'audio/mpeg';
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $mimeType = match ($extension) {
+            'mp3' => 'audio/mpeg',
+            'm4a', 'mp4' => 'audio/mp4',
+            'wav' => 'audio/wav',
+            default => $disk->mimeType($path) ?: 'application/octet-stream',
+        };
 
+        // Do not let browser/CDN caches keep playing the previous chapter file.
+        // BinaryFileResponse also supports normal browser byte-range requests.
         return response()->file($absolutePath, [
             'Content-Type' => $mimeType,
-            'Accept-Ranges' => 'bytes',
-            'Cache-Control' => 'public, max-age=3600',
+            'Content-Disposition' => sprintf('inline; filename="%s"', basename($path)),
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 }

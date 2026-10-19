@@ -19,8 +19,10 @@ class BookChapter extends Model
     {
         if ($this->upload_type === 'url') return $this->resource_url;
 
+        // Include the stored file path in the version key so replacing audio always
+        // produces a new URL, even when updated_at has only second-level precision.
         return $this->resource_path
-            ? url('/api/audio/chapters/' . $this->id) . '?v=' . ($this->updated_at?->timestamp ?? $this->id)
+            ? url('/api/audio/chapters/' . $this->id) . '?v=' . substr(sha1($this->resource_path . '|' . ($this->updated_at?->format('U.u') ?? '0')), 0, 16)
             : null;
     }
 }
