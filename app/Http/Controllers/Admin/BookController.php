@@ -160,6 +160,9 @@ class BookController extends Controller
     // PUT /admin/books/{book}/chapters/{chapter}  (Edit Chapter modal -> Update)
     public function updateChapter(Request $request, Book $book, \App\Models\BookChapter $chapter)
     {
+        // Keep the update scoped to the book shown in the URL.
+        abort_unless((int) $chapter->book_id === (int) $book->id, 404);
+
         $data = $request->validate([
             'title'          => 'nullable|string|max:255',
             'chapter_number' => 'required|integer|min:1',
@@ -170,40 +173,61 @@ class BookController extends Controller
             'duration_sec'   => 'nullable|integer|min:0|max:59',
         ]);
 
-        $chapter->title          = $data['title'] ?? $chapter->title;
+        $chapter->title = $data['title'] ?? $chapter->title;
         $chapter->chapter_number = $data['chapter_number'];
-        $chapter->upload_type    = $data['upload_type'];
+        $chapter->upload_type = $data['upload_type'];
 
-        // Guard against editing a chapter through a different book URL.
-        abort_unless((int) $chapter->book_id === (int) $book->id, 404);
+        if ($data['upload_type'] === 'file') {
+            if ($request->hasFile('resource_file')) {
+                $file = $request->file('resource_file');
+                if (!$file || !$file->isValid()) {
+                    return back()->withErrors(['resource_file' => 'The new audio file did not upload successfully. Please select it again.'])->withInput();
+                }
 
-        if ($data['upload_type'] === 'file' && $request->hasFile('resource_file')) {
-            $file = $request->file('resource_file');
-            $oldPath = $chapter->resource_path;
-            $newPath = $file->store('books/audio/chapters', 'public');
-            if (!$newPath) {
-                return back()->withErrors(['resource_file' => 'Audio upload failed. Please try again.'])->withInput();
+                $oldPath = $chapter->resource_path;
+                // Use a unique name so a replaced upload can never reuse the old URL/path.
+                $extension = strtolower($file->getClientOriginalExtension() ?: 'mp3');
+                $newPath = $file->storeAs(
+                    'books/audio/chapters',
+                    uniqid('chapter_' . $chapter->id . '_', true) . '.' . $extension,
+                    'public'
+                );
+                if (!$newPath || !Storage::disk('public')->exists($newPath)) {
+                    return back()->withErrors(['resource_file' => 'Audio upload failed to save on the server. Please try again.'])->withInput();
+                }
+
+                $chapter->resource_path = $newPath;
+                $chapter->resource_url = null;
+                $chapter->duration = $this->detectDuration($file->getRealPath())
+                    ?? $this->manualDuration($data)
+                    ?? $chapter->duration;
+                // Save the new path before removing the old file, preserving the old audio if save fails.
+                $chapter->updated_at = now();
+                if (!$chapter->save()) {
+                    Storage::disk('public')->delete($newPath);
+                    return back()->withErrors(['resource_file' => 'The chapter record could not be updated. The previous audio was kept.'])->withInput();
+                }
+                if ($oldPath && $oldPath !== $newPath) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+
+                return redirect()->route('admin.books.chapters', $book)->with('success', 'Chapter audio updated.');
             }
-            $chapter->resource_path = $newPath;
-            $chapter->resource_url = null;
-            $chapter->duration = $this->detectDuration($file->getRealPath())
-                ?? $this->manualDuration($data)
-                ?? $chapter->duration;
-            $chapter->save();
-            if ($oldPath && $oldPath !== $newPath) {
-                Storage::disk('public')->delete($oldPath);
+
+            // No new file selected: keep the existing audio file and path.
+            if (!$chapter->resource_path) {
+                return back()->withErrors(['resource_file' => 'Choose an audio file to upload.'])->withInput();
             }
-            return back()->with('success', 'Chapter audio updated.');
-        } elseif ($data['upload_type'] === 'url') {
+            $chapter->duration = $this->manualDuration($data) ?? $chapter->duration;
+        } else {
             $chapter->resource_url = $data['resource_url'] ?? $chapter->resource_url;
             $chapter->resource_path = null;
             $chapter->duration = $this->manualDuration($data) ?? $chapter->duration;
         }
-        // if upload_type = file and no new file chosen, existing resource_path/duration stay as-is.
 
+        $chapter->updated_at = now();
         $chapter->save();
-
-        return back()->with('success', 'Chapter updated.');
+        return redirect()->route('admin.books.chapters', $book)->with('success', 'Chapter updated.');
     }
 
     // DELETE /admin/books/{book}/chapters/{chapter}

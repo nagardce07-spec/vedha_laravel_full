@@ -28,7 +28,19 @@ class Book extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image_path ? Storage::url($this->image_path) : null;
+        $path = trim((string) $this->image_path);
+        if ($path === '') return null;
+
+        // Preserve legacy records that stored an absolute URL.
+        if (filter_var($path, FILTER_VALIDATE_URL)) return $path;
+
+        // Normalize paths saved by older versions (e.g. /storage/books/covers/x.jpg).
+        $path = ltrim($path, '/');
+        if (str_starts_with($path, 'storage/')) $path = substr($path, strlen('storage/'));
+        if (str_starts_with($path, 'public/')) $path = substr($path, strlen('public/'));
+
+        // The public disk URL is the canonical URL for current uploads.
+        return Storage::disk('public')->url($path);
     }
 
     // Full audiobook resource — either the uploaded file or the external URL.

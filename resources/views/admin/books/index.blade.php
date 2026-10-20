@@ -25,7 +25,8 @@
             @foreach($books as $book)
                 <tr>
                     <td style="display:flex; align-items:center; gap:10px;">
-                        <img src="{{ $book->image_url }}" style="width:40px;height:52px;border-radius:6px;object-fit:cover;background:#F3F4F6;">
+                        <img src="{{ $book->image_url ?? '' }}" alt="{{ $book->name }} cover" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';" style="width:40px;height:52px;border-radius:6px;object-fit:cover;background:#F3F4F6;">
+                        <div aria-label="Book cover unavailable" style="display:none;width:40px;height:52px;border-radius:6px;background:#EDE9FE;color:#6D28D9;align-items:center;justify-content:center;font-weight:700;">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($book->name, 0, 1)) }}</div>
                         <div>
                             <div style="font-weight:600;">{{ $book->name }}</div>
                             <div style="color:#9CA3AF; font-size:12.5px;">{{ optional($book->author)->name }}</div>
@@ -218,15 +219,31 @@
     }
 
     // Instantly flips a Visibility/Premium/Featured pill without a full page reload.
-    function toggleField(bookId, field, el) {
-        const turningOn = !el.classList.contains('on');
-        el.classList.toggle('on');
-
-        fetch(`/admin/books/${bookId}/toggle/${field}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.csrfToken },
-            body: JSON.stringify({ value: turningOn }),
-        }).catch(() => el.classList.toggle('on')); // revert on failure
+    async function toggleField(bookId, field, el) {
+        const wasOn = el.classList.contains('on');
+        const turningOn = !wasOn;
+        el.style.pointerEvents = 'none';
+        try {
+            const response = await fetch(`/admin/books/${bookId}/toggle/${field}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': window.csrfToken
+                },
+                body: JSON.stringify({ value: turningOn }),
+                credentials: 'same-origin'
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            if (!result.ok) throw new Error('Toggle was not saved');
+            el.classList.toggle('on', turningOn);
+        } catch (error) {
+            el.classList.toggle('on', wasOn);
+            alert('Setting could not be saved. Please refresh and try again.');
+        } finally {
+            el.style.pointerEvents = '';
+        }
     }
 </script>
 @endsection

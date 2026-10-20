@@ -64,3 +64,10 @@ first upload:
 
 This zip includes all of that, plus every custom file (migrations, models,
 controllers, blade views, routes) built earlier for the admin panel.
+## Book covers and uploaded media (important)
+
+- This version normalizes legacy `image_path` values (`books/covers/...`, `storage/books/covers/...`, or an absolute URL) when building cover URLs.
+- The admin list now shows a safe initial-letter placeholder if a cover URL returns 404, and Visibility/Premium/Featured switches verify the server response and revert visibly if saving fails.
+- `php artisan storage:link` exposes the public storage disk, but **it cannot restore image/audio files that are already missing from the server**. If old cover files are absent from `storage/app/public/books/covers/`, restore them from a backup or re-upload them.
+- Railway's local filesystem may not persist uploads across redeploys unless a persistent volume/object storage is configured. Do not delete the existing database or rerun seeders as a way to fix missing covers.
+
