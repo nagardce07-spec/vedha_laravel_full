@@ -127,6 +127,13 @@ class BookController extends Controller
     // POST /admin/books/{book}/chapters  (Add Chapter modal -> Save)
     public function storeChapter(Request $request, Book $book)
     {
+        // HTML number inputs can submit zero-padded values such as "07".
+        // Normalize duration fields before Laravel's integer validation.
+        $request->merge([
+            'duration_min' => $request->filled('duration_min') ? (int) $request->input('duration_min') : null,
+            'duration_sec' => $request->filled('duration_sec') ? (int) $request->input('duration_sec') : null,
+        ]);
+
         $data = $request->validate([
             'title'            => 'nullable|string|max:255',
             'chapter_number'   => 'required|integer|min:1',
@@ -162,6 +169,13 @@ class BookController extends Controller
     {
         // Keep the update scoped to the book shown in the URL.
         abort_unless((int) $chapter->book_id === (int) $book->id, 404);
+
+        // HTML number inputs can submit zero-padded values such as "07".
+        // Normalize duration fields before Laravel's integer validation.
+        $request->merge([
+            'duration_min' => $request->filled('duration_min') ? (int) $request->input('duration_min') : null,
+            'duration_sec' => $request->filled('duration_sec') ? (int) $request->input('duration_sec') : null,
+        ]);
 
         $data = $request->validate([
             'title'          => 'nullable|string|max:255',
