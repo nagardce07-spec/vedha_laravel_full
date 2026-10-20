@@ -2,7 +2,7 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 class TestQuestion extends Model {
-    protected $fillable = ['category_id','topic_id','question_type','question_text','options','correct_answer','explanation','difficulty','tags','image_url','status'];
+    protected $fillable = ['question_id','category','topic','category_id','topic_id','question_type','question_text','options','correct_answer','explanation','difficulty','tags','image_url','status'];
     protected $casts = ['options'=>'array','status'=>'boolean'];
     public function category(){ return $this->belongsTo(Category::class); }
     public function topic(){ return $this->belongsTo(TestTopic::class,'topic_id'); }

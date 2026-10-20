@@ -1,0 +1,1 @@
+Chapter audio replacement fix. .user.ini raises PHP upload limits. Edit form flags selected replacement uploads; failed uploads now report an error rather than silently keeping old audio. Deploy the full project. If Railway runtime ignores .user.ini, set these same limits in PHP startup configuration. Live Railway test not performed.

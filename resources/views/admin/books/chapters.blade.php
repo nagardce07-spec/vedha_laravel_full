@@ -123,7 +123,8 @@
                 <label>Current Resource</label>
                 <div id="editChapterCurrentAudio" style="margin-bottom:8px;"></div>
                 <label>Upload New Audio (optional)</label>
-                <input type="file" name="resource_file" accept="audio/*">
+                <input type="hidden" name="audio_replacement_requested" id="audioReplacementRequested" value="0">
+                <input type="file" name="resource_file" accept=".mp3,.m4a,.wav,audio/mpeg,audio/mp4,audio/wav" onchange="document.getElementById('audioReplacementRequested').value = this.files.length ? '1' : '0';">
                 <div style="color:#9CA3AF; font-size:12px; margin-top:4px;">Upload new file to update</div>
             </div>
 
@@ -163,6 +164,8 @@
         document.getElementById('editChapterSec').value = sec;
         const editFileInput = document.querySelector('#editChapterForm input[name="resource_file"]');
         if (editFileInput) editFileInput.value = '';
+        const replacementFlag = document.getElementById('audioReplacementRequested');
+        if (replacementFlag) replacementFlag.value = '0';
         if (chapter.upload_type === 'file') {
             const fileRadio = document.querySelector('#editChapterForm input[value="file"]');
             if (fileRadio) fileRadio.checked = true;

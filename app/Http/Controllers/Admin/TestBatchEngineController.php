@@ -62,14 +62,109 @@ class TestBatchEngineController extends Controller
         $d['status']=$r->boolean('status'); if($d['question_type']==='true_false') $d['options']=['True','False']; $question->update($d); return back()->with('success','Question updated.');
     }
     public function questionDestroy(TestQuestion $question){ $question->delete(); return back()->with('success','Question deleted.'); }
-    public function questionImport(Request $r){
-        $r->validate(['file'=>'required|file|mimes:csv,txt|max:10240']);
-        $h=fopen($r->file('file')->getRealPath(),'r'); $header=fgetcsv($h); if(!$header) return back()->withErrors(['file'=>'CSV is empty.']);
-        $header=array_map(fn($v)=>strtolower(trim($v)), $header); $count=0;
-        while(($row=fgetcsv($h))!==false){ if(count($row)<count($header)) continue; $x=array_combine($header,array_slice($row,count($header))); if(empty(trim($x['question_text']??''))||empty(trim($x['correct_answer']??''))) continue;
-            $opts=[]; foreach(['option_a','option_b','option_c','option_d'] as $k) if(!empty($x[$k])) $opts[]=$x[$k];
-            TestQuestion::create(['question_type'=>in_array(($x['question_type']??'mcq'),['mcq','true_false'],true)?($x['question_type']??'mcq'):'mcq','question_text'=>$x['question_text'],'options'=>$opts,'correct_answer'=>$x['correct_answer'],'explanation'=>$x['explanation']??null,'difficulty'=>in_array(($x['difficulty']??'medium'),['easy','medium','hard'],true)?($x['difficulty']??'medium'):'medium','tags'=>$x['tags']??null,'status'=>true]); $count++; }
-        fclose($h); return back()->with('success',"$count questions imported.");
+    public function questionImport(Request $r)
+    {
+        $r->validate(['file' => 'required|file|mimes:csv,txt|max:10240']);
+        $handle = fopen($r->file('file')->getRealPath(), 'r');
+        if (!$handle) return back()->withErrors(['file' => 'CSV file could not be opened.']);
+
+        // Detect common CSV delimiters from the first line and rewind.
+        $firstLine = fgets($handle);
+        if ($firstLine === false) { fclose($handle); return back()->withErrors(['file' => 'CSV is empty.']); }
+        $delimiters = [',' => substr_count($firstLine, ','), ';' => substr_count($firstLine, ';'), "\t" => substr_count($firstLine, "\t")];
+        $delimiter = array_search(max($delimiters), $delimiters, true);
+        rewind($handle);
+        $header = fgetcsv($handle, 0, $delimiter ?: ',');
+        if (!$header) { fclose($handle); return back()->withErrors(['file' => 'CSV is empty or the header is invalid.']); }
+
+        $header = array_map(function ($value) {
+            $value = preg_replace('/^\xEF\xBB\xBF/', '', (string) $value);
+            $value = strtolower(trim($value));
+            $value = preg_replace('/[^a-z0-9]+/', '_', $value);
+            return trim($value, '_');
+        }, $header);
+        $aliases = [
+            'id' => 'question_id', 'questionid' => 'question_id', 'question_no' => 'question_id',
+            'category_name' => 'category', 'topic_name' => 'topic', 'subject' => 'category',
+            'question' => 'question_text', 'questiontext' => 'question_text', 'question_statement' => 'question_text',
+            'answer' => 'correct_answer', 'correctanswer' => 'correct_answer', 'right_answer' => 'correct_answer',
+            'type' => 'question_type', 'option1' => 'option_a', 'option2' => 'option_b',
+            'option3' => 'option_c', 'option4' => 'option_d', 'option_1' => 'option_a',
+            'option_2' => 'option_b', 'option_3' => 'option_c', 'option_4' => 'option_d',
+            'answer_explanation' => 'explanation', 'level' => 'difficulty', 'tag' => 'tags',
+        ];
+        $header = array_map(fn ($key) => $aliases[$key] ?? $key, $header);
+        if (!in_array('question_text', $header, true) || !in_array('correct_answer', $header, true)) {
+            fclose($handle);
+            return back()->withErrors(['file' => 'CSV header must contain question_text (or Question) and correct_answer (or Answer).']);
+        }
+
+        $count = 0; $updated = 0; $skipped = 0; $line = 1;
+        DB::beginTransaction();
+        try {
+            while (($row = fgetcsv($handle, 0, $delimiter ?: ',')) !== false) {
+                $line++;
+                if ($row === [null] || (count($row) === 1 && trim((string) $row[0]) === '')) { $skipped++; continue; }
+                // Tolerate trailing blank cells / extra cells without shifting every field.
+                if (count($row) < count($header)) $row = array_pad($row, count($header), '');
+                if (count($row) > count($header)) $row = array_slice($row, 0, count($header));
+                $x = array_combine($header, $row);
+                $questionText = trim((string) ($x['question_text'] ?? ''));
+                $correctAnswer = trim((string) ($x['correct_answer'] ?? ''));
+                if ($questionText === '' || $correctAnswer === '') { $skipped++; continue; }
+
+                $questionId = trim((string) ($x['question_id'] ?? ''));
+                $categoryName = trim((string) ($x['category'] ?? ''));
+                $topicName = trim((string) ($x['topic'] ?? ''));
+                $categoryId = $categoryName !== '' ? Category::where('name', $categoryName)->value('id') : null;
+                $topicId = null;
+                if ($topicName !== '') {
+                    $topicQuery = TestTopic::where('name', $topicName);
+                    if ($categoryId) $topicQuery->where('category_id', $categoryId);
+                    $topicId = $topicQuery->value('id');
+                }
+                $type = strtolower(trim((string) ($x['question_type'] ?? 'mcq')));
+                if (!in_array($type, ['mcq', 'true_false'], true)) $type = 'mcq';
+                $difficulty = strtolower(trim((string) ($x['difficulty'] ?? 'medium')));
+                if (!in_array($difficulty, ['easy', 'medium', 'hard'], true)) $difficulty = 'medium';
+                $options = [];
+                foreach (['option_a', 'option_b', 'option_c', 'option_d'] as $key) {
+                    $value = trim((string) ($x[$key] ?? ''));
+                    if ($value !== '') $options[] = $value;
+                }
+                if ($type === 'true_false' && !$options) $options = ['True', 'False'];
+                $data = [
+                    'category' => $categoryName !== '' ? $categoryName : null,
+                    'topic' => $topicName !== '' ? $topicName : null,
+                    'category_id' => $categoryId,
+                    'topic_id' => $topicId,
+                    'question_type' => $type,
+                    'question_text' => $questionText,
+                    'options' => $options ?: null,
+                    'correct_answer' => $correctAnswer,
+                    'explanation' => trim((string) ($x['explanation'] ?? '')) ?: null,
+                    'difficulty' => $difficulty,
+                    'tags' => trim((string) ($x['tags'] ?? '')) ?: null,
+                    'image_url' => trim((string) ($x['image_url'] ?? '')) ?: null,
+                    'status' => true,
+                ];
+                if ($questionId !== '') {
+                    $question = TestQuestion::where('question_id', $questionId)->first();
+                    if ($question) { $question->update($data); $updated++; continue; }
+                    $data['question_id'] = $questionId;
+                }
+                TestQuestion::create($data);
+                $count++;
+            }
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            fclose($handle);
+            report($e);
+            return back()->withErrors(['file' => 'CSV import failed. Check that the database migration is deployed and the CSV columns match the template. No partial import was saved.']);
+        }
+        fclose($handle);
+        return back()->with('success', "CSV import completed: {$count} new questions, {$updated} updated, {$skipped} skipped.");
     }
 
     public function batches(){ $batches=TestBatch::with('category')->withCount('tests')->latest()->paginate(15); $categories=Category::orderBy('name')->get(); return view('admin.test_engine.batches',compact('batches','categories')); }

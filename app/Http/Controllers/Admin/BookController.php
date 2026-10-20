@@ -178,6 +178,14 @@ class BookController extends Controller
         $chapter->upload_type = $data['upload_type'];
 
         if ($data['upload_type'] === 'file') {
+            // PHP can drop selected files when post_max_size is exceeded.
+            // Report the failed upload instead of silently keeping the old audio.
+            if ($request->boolean('audio_replacement_requested') && !$request->hasFile('resource_file')) {
+                return back()->withErrors([
+                    'resource_file' => 'The selected audio did not reach the server. It may exceed the server upload limit. Increase PHP post_max_size/upload_max_filesize and try again.',
+                ])->withInput();
+            }
+
             if ($request->hasFile('resource_file')) {
                 $file = $request->file('resource_file');
                 if (!$file || !$file->isValid()) {
