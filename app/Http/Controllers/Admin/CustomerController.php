@@ -14,7 +14,7 @@ class CustomerController extends Controller
         $premium=$customer->subscriptions->contains(fn($s)=>$s->isCurrentlyActive());
         $attempts=$customer->testAttempts->sortByDesc('created_at');
         $topicStats=[];
-        foreach($attempts as $attempt){ foreach($attempt->answers as $ans){ $topic=$ans->question?->topic?->name ?? 'Uncategorized'; if(!isset($topicStats[$topic]))$topicStats[$topic]=['correct'=>0,'wrong'=>0,'skipped'=>0,'total'=>0]; $topicStats[$topic]['total']++; if($ans->selected_answer===null)$topicStats[$topic]['skipped']++; elseif($ans->is_correct)$topicStats[$topic]['correct']++; else $topicStats[$topic]['wrong']++; }}
+        foreach($attempts as $attempt){ foreach($attempt->answers as $ans){ $topic=$ans->question?->topicRelation?->name ?? $ans->question?->topic ?? 'Uncategorized'; if(!isset($topicStats[$topic]))$topicStats[$topic]=['correct'=>0,'wrong'=>0,'skipped'=>0,'total'=>0]; $topicStats[$topic]['total']++; if($ans->selected_answer===null)$topicStats[$topic]['skipped']++; elseif($ans->is_correct)$topicStats[$topic]['correct']++; else $topicStats[$topic]['wrong']++; }}
         return view('admin.customers.show',compact('customer','premium','attempts','topicStats'));
     }
 }

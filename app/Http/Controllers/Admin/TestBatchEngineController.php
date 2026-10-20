@@ -45,7 +45,7 @@ class TestBatchEngineController extends Controller
 
     public function questions(Request $r)
     {
-        $q=TestQuestion::with(['category','topic'])->latest();
+        $q=TestQuestion::with(['categoryRelation','topicRelation'])->latest();
         if($r->filled('category_id')) $q->where('category_id',$r->category_id);
         if($r->filled('topic_id')) $q->where('topic_id',$r->topic_id);
         if($r->filled('difficulty')) $q->where('difficulty',$r->difficulty);
@@ -54,12 +54,43 @@ class TestBatchEngineController extends Controller
         return view('admin.test_engine.questions',compact('questions','categories','topics'));
     }
     public function questionStore(Request $r){
-        $d=$r->validate(['category_id'=>'nullable|exists:categories,id','topic_id'=>'nullable|exists:test_topics,id','question_type'=>['required',Rule::in(['mcq','true_false'])],'question_text'=>'required|string','options'=>'nullable|array','options.*'=>'nullable|string|max:500','correct_answer'=>'required|string|max:500','explanation'=>'nullable|string','difficulty'=>['required',Rule::in(['easy','medium','hard'])],'tags'=>'nullable|string|max:1000','image_url'=>'nullable|url|max:2048','status'=>'nullable|boolean']);
-        $d['status']=$r->boolean('status'); if($d['question_type']==='true_false') $d['options']=['True','False']; TestQuestion::create($d); return back()->with('success','Question added.');
+        $d=$r->validate([
+            'question_id'=>'required|string|max:100|unique:test_questions,question_id',
+            'category_id'=>'required|exists:categories,id',
+            'topic_id'=>'required|exists:test_topics,id',
+            'question_type'=>['required',Rule::in(['mcq','true_false'])],
+            'question_text'=>'required|string','options'=>'nullable|array','options.*'=>'nullable|string|max:500',
+            'correct_answer'=>'required|string|max:500','explanation'=>'nullable|string',
+            'difficulty'=>['required',Rule::in(['easy','medium','hard'])],
+            'tags'=>'nullable|string|max:1000','image_url'=>'nullable|url|max:2048','status'=>'nullable|boolean'
+        ]);
+        $category=Category::findOrFail($d['category_id']);
+        $topic=TestTopic::whereKey($d['topic_id'])->where('category_id',$d['category_id'])->firstOrFail();
+        $d['category']=$category->name; $d['topic']=$topic->name;
+        $d['status']=$r->boolean('status');
+        if($d['question_type']==='true_false') $d['options']=['True','False'];
+        else $d['options']=array_values(array_filter($d['options']??[],fn($v)=>trim((string)$v)!==''));
+        TestQuestion::create($d);
+        return back()->with('success','Question added.');
     }
     public function questionUpdate(Request $r, TestQuestion $question){
-        $d=$r->validate(['category_id'=>'nullable|exists:categories,id','topic_id'=>'nullable|exists:test_topics,id','question_type'=>['required',Rule::in(['mcq','true_false'])],'question_text'=>'required|string','options'=>'nullable|array','options.*'=>'nullable|string|max:500','correct_answer'=>'required|string|max:500','explanation'=>'nullable|string','difficulty'=>['required',Rule::in(['easy','medium','hard'])],'tags'=>'nullable|string|max:1000','image_url'=>'nullable|url|max:2048','status'=>'nullable|boolean']);
-        $d['status']=$r->boolean('status'); if($d['question_type']==='true_false') $d['options']=['True','False']; $question->update($d); return back()->with('success','Question updated.');
+        $d=$r->validate([
+            'question_id'=>['required','string','max:100',Rule::unique('test_questions','question_id')->ignore($question->id)],
+            'category_id'=>'required|exists:categories,id','topic_id'=>'required|exists:test_topics,id',
+            'question_type'=>['required',Rule::in(['mcq','true_false'])],
+            'question_text'=>'required|string','options'=>'nullable|array','options.*'=>'nullable|string|max:500',
+            'correct_answer'=>'required|string|max:500','explanation'=>'nullable|string',
+            'difficulty'=>['required',Rule::in(['easy','medium','hard'])],
+            'tags'=>'nullable|string|max:1000','image_url'=>'nullable|url|max:2048','status'=>'nullable|boolean'
+        ]);
+        $category=Category::findOrFail($d['category_id']);
+        $topic=TestTopic::whereKey($d['topic_id'])->where('category_id',$d['category_id'])->firstOrFail();
+        $d['category']=$category->name; $d['topic']=$topic->name;
+        $d['status']=$r->boolean('status');
+        if($d['question_type']==='true_false') $d['options']=['True','False'];
+        else $d['options']=array_values(array_filter($d['options']??[],fn($v)=>trim((string)$v)!==''));
+        $question->update($d);
+        return back()->with('success','Question updated.');
     }
     public function questionDestroy(TestQuestion $question){ $question->delete(); return back()->with('success','Question deleted.'); }
     public function questionImport(Request $r)
@@ -188,7 +219,7 @@ class TestBatchEngineController extends Controller
         $d['shuffle_questions']=$r->boolean('shuffle_questions'); $d['shuffle_options']=$r->boolean('shuffle_options'); $d['difficulty_distribution']=['easy'=>(int)($r->easy_count??0),'medium'=>(int)($r->medium_count??0),'hard'=>(int)($r->hard_count??0)]; unset($d['easy_count'],$d['medium_count'],$d['hard_count']); $test->update($d); return back()->with('success','Test updated.');
     }
     public function testDestroy(Test $test){ $test->delete(); return back()->with('success','Test deleted.'); }
-    public function testQuestions(Test $test){ $test->load('batch'); $questions=TestQuestion::with(['category','topic'])->where('status',true)->orderBy('id')->paginate(25); $selected=$test->questions()->pluck('test_questions.id')->all(); return view('admin.test_engine.test_questions',compact('test','questions','selected')); }
+    public function testQuestions(Test $test){ $test->load('batch'); $questions=TestQuestion::with(['categoryRelation','topicRelation'])->where('status',true)->orderBy('id')->paginate(25); $selected=$test->questions()->pluck('test_questions.id')->all(); return view('admin.test_engine.test_questions',compact('test','questions','selected')); }
     public function syncTestQuestions(Request $r, Test $test){ $ids=$r->input('question_ids',[]); $ids=array_values(array_unique(array_map('intval',$ids))); $valid=TestQuestion::whereIn('id',$ids)->where('status',true)->pluck('id')->all(); $sync=[]; foreach($valid as $i=>$id) $sync[$id]=['sort_order'=>$i+1]; $test->questions()->sync($sync); $test->update(['question_count'=>count($sync)]); return back()->with('success','Test questions updated.'); }
 
     public function attempts(Request $r){ $q=TestAttempt::with(['customer','test.batch'])->latest(); if($r->filled('status'))$q->where('status',$r->status); if($r->filled('test_id'))$q->where('test_id',$r->test_id); if($r->filled('search'))$q->whereHas('customer',fn($x)=>$x->where('name','like','%'.$r->search.'%')->orWhere('email','like','%'.$r->search.'%')); $attempts=$q->paginate(20)->withQueryString(); $tests=Test::orderBy('title')->get(); return view('admin.test_engine.attempts',compact('attempts','tests')); }
@@ -202,7 +233,7 @@ class TestBatchEngineController extends Controller
         $submittedQuery = TestAttempt::where('status', 'submitted');
         $topTests = Test::with('batch')->withCount(['attempts' => fn($q) => $q->where('status', 'submitted')])
             ->orderByDesc('attempts_count')->limit(10)->get();
-        $questionStats = TestQuestion::with(['topic'])
+        $questionStats = TestQuestion::with(['topicRelation'])
             ->withCount(['answers as answer_count' => fn($q) => $q->whereNotNull('selected_answer')])
             ->withCount(['answers as wrong_answer_count' => fn($q) => $q->where('is_correct', false)])
             ->orderByDesc('wrong_answer_count')->limit(15)->get();
