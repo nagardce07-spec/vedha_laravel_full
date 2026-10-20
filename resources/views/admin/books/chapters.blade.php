@@ -3,6 +3,16 @@
 @section('title', $book->name . ' — Chapters')
 
 @section('content')
+@if ($errors->any())
+    <div style="background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;padding:12px 16px;border-radius:10px;margin-bottom:18px;">
+        <strong>Chapter update failed:</strong>
+        <ul style="margin:6px 0 0 18px;">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 <div class="card">
     <div class="card-header">
         <div class="card-title"><span class="dot">•</span> {{ $book->name }} <span class="dot">•</span></div>

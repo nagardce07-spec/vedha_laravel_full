@@ -35,11 +35,13 @@ default "It works!" page instead of your app.
    **one-time deploy command** instead:
    - Go to **Settings → Deploy → Custom Start Command** and temporarily set:
      ```
-     php artisan migrate --force && php artisan db:seed --class=AdminSeeder --force && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=$PORT
+     php artisan migrate --force && php artisan storage:link && php -d upload_max_filesize=600M -d post_max_size=620M -d max_execution_time=300 -d max_input_time=300 -S 0.0.0.0:$PORT -t public
      ```
-   - After the first successful deploy (tables created), you can leave this
-     start command as-is permanently — `migrate --force` is safe to run on
-     every restart since it skips migrations that already ran.
+   - Keep this command as the Railway Custom Start Command. It runs pending
+     migrations, creates the storage link, and starts PHP with upload limits
+     explicitly set. The `php -d` flags matter here: `.user.ini` is not reliably
+     applied by PHP's built-in server, so large chapter MP3 uploads can otherwise
+     be dropped before Laravel receives them.
 
 ## After deploy
 
